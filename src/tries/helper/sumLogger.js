@@ -1,4 +1,4 @@
-const myRequire = require('../myRequire.js');
+const myRequire = require('../../myRequire.js');
 
 const dependency = myRequire('../dependency.js');
 

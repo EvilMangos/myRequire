@@ -1,19 +1,7 @@
 const path = require('path');
-const { readFileSync } = require('fs');
+const loadModule = require('./loadModule');
 
 const directoryStack = []; // Stack to track current directories
-
-const loadModule = (filename, module, myRequire) => {
-	const moduleBody = readFileSync(filename, 'utf8');
-	const moduleFunction = new Function(
-		'module',
-		'exports',
-		'require', // use myRequire instead of require
-		'__dirname',
-		moduleBody
-	);
-	moduleFunction(module, module.exports, myRequire, path.dirname(filename));
-};
 
 const myRequire = (moduleName) => {
 	console.log(`Require invoked for module: ${moduleName}`);
