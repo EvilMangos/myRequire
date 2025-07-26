@@ -2,10 +2,8 @@ const path = require('path');
 const loadModule = require('./loadModule.js');
 const { builtinModules } = require('module');
 
-const directoryStack = []; // Stack to track current directories
-
-const myRequire = (moduleName) => {
-	console.log(`Require invoked for module: ${moduleName}`);
+const myRequire = (moduleName, callerPath) => {
+	console.log(`Require invoked for module: ${moduleName} from: ${callerPath || 'initial call'}`);
 
 	if (builtinModules.includes(moduleName)) {
 		return require(moduleName);
@@ -15,11 +13,10 @@ const myRequire = (moduleName) => {
 		return require.cache[moduleName].exports;
 	}
 
-	const baseDir =
-		directoryStack.length > 0
-			? directoryStack[directoryStack.length - 1]
-			: __dirname;
+	const baseDir = callerPath ? path.dirname(callerPath) : process.cwd();
 	const id = myRequire.resolve(moduleName, baseDir);
+
+	console.log(`Resolved path: ${id}`);
 
 	if (myRequire.cache[id]) {
 		return myRequire.cache[id].exports;
@@ -32,14 +29,7 @@ const myRequire = (moduleName) => {
 
 	myRequire.cache[id] = module;
 
-	// Push the current module's directory to the stack
-	directoryStack.push(path.dirname(id));
-
-	// Load the module and allow nested requires to use this directory
 	loadModule(id, module, myRequire);
-
-	// Pop the directory after loading is complete
-	directoryStack.pop();
 
 	return module.exports;
 };
@@ -47,9 +37,13 @@ const myRequire = (moduleName) => {
 myRequire.cache = {};
 myRequire.resolve = (moduleName, baseDir) => {
 	if (moduleName.startsWith('.')) {
-		return path.resolve(baseDir, moduleName);
+		const resolvedPath = path.resolve(baseDir, moduleName);
+		if (!resolvedPath.endsWith('.js')) {
+			return resolvedPath + '.js';
+		}
+		return resolvedPath;
 	} else {
-		return path.resolve(__dirname, moduleName);
+		return path.resolve(process.cwd(), moduleName);
 	}
 };
 

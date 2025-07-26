@@ -3,14 +3,27 @@ const { readFileSync } = require('fs');
 
 const loadModule = (filename, module, myRequire) => {
 	const moduleBody = readFileSync(filename, 'utf8');
+
+	const requireWrapper = (moduleName) => {
+		return myRequire(moduleName, filename);
+	};
+
 	const moduleFunction = new Function(
 		'module',
 		'exports',
-		'require', // use myRequire instead of require
+		'require',
 		'__dirname',
+		'__filename',
 		moduleBody
 	);
-	moduleFunction(module, module.exports, myRequire, path.dirname(filename));
+
+	moduleFunction(
+		module,
+		module.exports,
+		requireWrapper,
+		path.dirname(filename),
+		filename
+	);
 };
 
 module.exports = loadModule;
