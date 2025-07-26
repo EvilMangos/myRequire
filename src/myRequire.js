@@ -1,10 +1,15 @@
 const path = require('path');
-const loadModule = require('./loadModule');
+const loadModule = require('./loadModule.js');
+const { builtinModules } = require('module');
 
 const directoryStack = []; // Stack to track current directories
 
 const myRequire = (moduleName) => {
 	console.log(`Require invoked for module: ${moduleName}`);
+
+	if (builtinModules.includes(moduleName)) {
+		return require(moduleName);
+	}
 
 	if (moduleName in require.cache) {
 		return require.cache[moduleName].exports;
